@@ -5,36 +5,25 @@ import Keycloak from "keycloak-js";
 
 let initOptions = {
   url: 'http://localhost:8080/',
-  realm: 'notes-web-service',
-  clientId: 'notes-web-service-client',
+  realm: 'myrealm',
+  clientId: 'frontend',
 }
 
 let kc = new Keycloak(initOptions);
 
 kc.init({
-  // onLoad: 'login-required', // Supported values: 'check-sso' (default), 'login-required'
+  onLoad: 'login-required', // Supported values: 'check-sso' (default), 'login-required'
   checkLoginIframe: true
 }).then((auth) => {
-  if (auth) {
-  //   window.location.reload();
-  // }
-  // else {
-    // alert("Authenticated");
-    // alert(auth)
-    // alert(kc)
-    // console.log(kc.token)
-
-    /* http client will use this header in every request it sends */
-    // httpClient.defaults.headers.common['Authorization'] = `Bearer ${kc.token}`;
-    sessionStorage.setItem("token", kc.token);
-
-    kc.onTokenExpired = () => {
-      alert('token expired')
-    }
+  if (!auth) {
+    window.location.reload();
+  }
+  else {
+    console.log(kc.token)
   }
 }, () => {
   /* Notify the user if necessary */
-  alert("Authentication Failed");
+  // alert("Authentication Failed");
 });
 
 function App() {
@@ -54,8 +43,7 @@ function App() {
           Learn React
         </a>
         <br></br>
-        <button onClick={() => {kc.login();}}>Login</button>
-        <button onClick={() => {sessionStorage.clear();kc.logout();}}>Logout</button>
+        <button onClick={() => {kc.logout()}}>Logout</button>
       </header>
     </div>
   );

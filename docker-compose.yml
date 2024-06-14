@@ -1,23 +1,23 @@
-version: '3.2'
+version: "3"
 services:
   database-1:
     image: mariadb:11.4.2
-    env_file:
-      - database.env
     ports:
       - "3307:3306"
+    env_file:
+      - database.env
     volumes:
       - database-1-data:/var/lib/mysql
       - database-1-galera.cnf:/etc/mysql/conf.d
 
   database-2:
     image: mariadb:11.4.2
-    env_file:
-      - database.env
     ports:
       - "3308:3306"
     depends_on:
       - database-1
+    env_file:
+      - database.env
     volumes:
       - database-2-data:/var/lib/mysql
       - database-2-galera.cnf:/etc/mysql/conf.d
@@ -30,19 +30,25 @@ services:
     depends_on:
       - database-1
       - database-2
+    volumes:
+      - db-loadbalancer-config:/etc/maxscale
 
   keycloak:
     image: keycloak/keycloak:24.0.4
-    env_file:
+    env_file: 
       - keycloak.env
+    command: start-dev
     ports:
       - "8080:8080"
-    command: start-dev
+    volumes:
+      - keycloak:/opt/keycloak/data
 
   python-app:
     build: ./backend
     ports:
       - "5000:5000"
+    volumes:
+      - .:/app
     depends_on:
       - keycloak
       - db-loadbalancer
@@ -51,13 +57,17 @@ services:
     build: ./frontend
     ports:
       - "3000:3000"
-      - "80:3000"
     depends_on:
-      - keycloak
       - python-app
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    command: npm start
 
-volumes: # named volumes can be managed easier using docker-compose
+volumes:
+  keycloak:
   database-1-data:
   database-1-galera.cnf:
   database-2-data:
   database-2-galera.cnf:
+  db-loadbalancer-config:
